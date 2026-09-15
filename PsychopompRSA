@@ -1,0 +1,179 @@
+import java.io.*;
+import java.math.BigInteger;
+
+public class PsychopompRSA {
+
+    private BigInteger encryptionKey, decryptionKey, modulusN;
+
+    // TODO: Key generation
+
+    // TODO: TEST THIS
+
+    public void encryptFile (File f) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(f) );
+        BigInteger message = fileData.modPow( this.encryptionKey, this.modulusN );
+        setFileTxt( f, bigIntToChars( message ) );
+
+    }
+
+    public void decryptFile (File f) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(f) );
+        BigInteger message = fileData.modPow( this.decryptionKey, this.modulusN );
+        setFileTxt( f, bigIntToChars( message ) );
+
+    }
+
+    public void encryptFile (String fileURL) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(fileURL) );
+        BigInteger message = fileData.modPow( this.encryptionKey, this.modulusN );
+        setFileTxt( new File(fileURL), bigIntToChars( message ) );
+
+    }
+
+    public void decryptFile (String fileURL) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(fileURL) );
+        BigInteger message = fileData.modPow( this.decryptionKey, this.modulusN );
+        setFileTxt( new File(fileURL), bigIntToChars( message ) );
+
+    }
+
+    public void encryptFile (File srcFile, File encFile) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(srcFile) );
+        BigInteger message = fileData.modPow( this.encryptionKey, this.modulusN );
+        setFileTxt( encFile, bigIntToChars( message ) );
+
+    }
+
+    public void decryptFile (File srcFile, File decFile) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(srcFile) );
+        BigInteger message = fileData.modPow( this.decryptionKey, this.modulusN );
+        setFileTxt( decFile, bigIntToChars( message ) );
+
+    }
+
+    public void encryptFile (String srcFileURL, String encFileURL) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(srcFileURL) );
+        BigInteger message = fileData.modPow( this.encryptionKey, this.modulusN );
+        setFileTxt( encFileURL, bigIntToChars( message ) );
+
+    }
+
+    public void decryptFile (String srcFileURL, String decFileURL) throws IOException {
+        BigInteger fileData = concatenate( getFileTxt(srcFileURL) );
+        BigInteger message = fileData.modPow( this.decryptionKey, this.modulusN );
+        setFileTxt( decFileURL, bigIntToChars( message ) );
+
+    }
+
+    public static BigInteger concatenate(String txt){
+        BigInteger returnValue = BigInteger.ZERO;
+        char[] txtChars = txt.toCharArray();
+
+        for (char c:txtChars) {
+            returnValue = returnValue.shiftLeft( 16 ).add( BigInteger.valueOf( (int) c ) );
+        }
+
+        return returnValue;
+    }
+
+    public static String unConcatenate(BigInteger bigInteger) {
+        StringBuilder returnValue = new StringBuilder();
+        int nextByte, shift;
+
+        while(bigInteger.bitLength() > 0){
+            shift = bigInteger.bitLength() - (bigInteger.bitLength()-1) % 16 - 1;
+
+            nextByte = bigInteger.shiftRight( shift ).intValueExact();
+            returnValue.append((char) nextByte);
+            bigInteger = bigInteger.subtract( BigInteger.valueOf(nextByte).shiftLeft( shift ) );
+        }
+
+        // returnValue.append((char) bigInteger.intValueExact());
+
+        return returnValue.toString();
+    }
+
+    public static String getFileTxt(String fileURL) throws IOException {
+        FileReader fileReader = new FileReader(fileURL);
+        StringBuilder stringBuilder = new StringBuilder();
+        int c = fileReader.read();
+
+        while (c > -1) {
+            stringBuilder.append((char) c);
+            c = (char) fileReader.read();
+        }
+
+        fileReader.close();
+        return stringBuilder.toString();
+    }
+
+    public static String getFileTxt(File file) throws IOException {
+        FileReader fileReader = new FileReader(file);
+        StringBuilder stringBuilder = new StringBuilder();
+        int c = fileReader.read();
+
+        while (c > -1) {
+            stringBuilder.append((char) c);
+            c = (char) fileReader.read();
+        }
+
+        fileReader.close();
+        return stringBuilder.toString();
+    }
+
+    public static void setFileTxt(File file, String txt) throws IOException {
+        FileWriter fileWriter = new FileWriter(file);
+        fileWriter.write(txt);
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
+    public static void setFileTxt(String fileURL, String txt) throws IOException {
+        FileWriter fileWriter = new FileWriter(fileURL);
+        fileWriter.write(txt);
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
+    public static String bigIntToChars(BigInteger bigInteger) {
+        StringBuilder returnValue = new StringBuilder();
+        int nextByte, shift;
+
+        while(bigInteger.bitLength() > 16){
+            shift = bigInteger.bitLength() - (bigInteger.bitLength()-1) % 16 - 1;
+
+            nextByte = bigInteger.shiftRight( shift ).intValueExact();
+            returnValue.append((char) nextByte);
+            bigInteger = bigInteger.subtract( BigInteger.valueOf(nextByte).shiftLeft( shift ) );
+        }
+
+        returnValue.append((char) bigInteger.intValueExact());
+
+        return returnValue.toString();
+    }
+
+    public BigInteger getDecryptionKey() {
+        return decryptionKey;
+    }
+
+    public BigInteger getEncryptionKey() {
+        return encryptionKey;
+    }
+
+    public BigInteger getModulusN() {
+        return modulusN;
+    }
+
+    public void setDecryptionKey(BigInteger decryptionKey) {
+        this.decryptionKey = decryptionKey;
+    }
+
+    public void setEncryptionKey(BigInteger encryptionKey) {
+        this.encryptionKey = encryptionKey;
+    }
+
+    public void setModulusN(BigInteger modulusN) {
+        this.modulusN = modulusN;
+    }
+
+}
