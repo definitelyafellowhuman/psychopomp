@@ -144,7 +144,6 @@ public class PsychopompRSA {
     }
 
     public static void saveBigIntToTxt (File file, BigInteger bigInteger) throws IOException {
-        int next2bytes, shift;
         try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(bigInteger.toString());
         }
