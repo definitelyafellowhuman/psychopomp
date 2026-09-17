@@ -105,7 +105,7 @@ public class PsychopompRSA {
         return returnValue.toString();
     }
 
-    public static BigInteger readBigIntegerFile(File file) throws FileNotFoundException {
+    public static BigInteger readBigIntegerFile(File file) {
 
         BigInteger bigInteger = BigInteger.ZERO;
 
@@ -235,7 +235,7 @@ public class PsychopompRSA {
 
     public void generateKeys (BigInteger p, BigInteger q, boolean ctrl) {
 
-        BigInteger e, d, n, lambdaN;
+        BigInteger e, d, n;
 
         // modulus
         n = p.multiply(q);
