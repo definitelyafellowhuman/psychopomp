@@ -47,13 +47,16 @@ public class PsychopompRSA {
         BigInteger fileData = readBigIntegerFile( srcFile );
         BigInteger message = fileData.modPow( this.encryptionKey, this.modulusN );
         saveBigIntToTxt( encFile, message );
+        // doesn't work yet writeBigIntegerFile( encFile, message );
 
-        if (readTxtAsBigInt(encFile).equals(message)) {
+        BigInteger readData = readTxtAsBigInt(encFile);
+        // doesn't work yet BigInteger readData = readBigIntegerFile(encFile);
+        if ( readData.equals(message) ) {
             System.out.println("FILE CTRL");
         } else {
             System.out.println("FILE ERROR");
             System.out.println("written file can not be read as intended");
-            System.out.println(readTxtAsBigInt(encFile));
+            System.out.println( readData );
             System.out.println(message);
         }
 
@@ -69,6 +72,7 @@ public class PsychopompRSA {
     // core
     public void decryptFile (File srcFile, File decFile) throws IOException {
         BigInteger fileData = readTxtAsBigInt( srcFile );
+        // doesn't work yet BigInteger fileData = readBigIntegerFile( srcFile );
         BigInteger message = fileData.modPow(decryptionKey, modulusN);
         writeBigIntegerFile( decFile, message );
 
@@ -107,14 +111,14 @@ public class PsychopompRSA {
 
     public static BigInteger readBigIntegerFile(File file) {
 
-        BigInteger bigInteger = BigInteger.ZERO;
+        StringBuilder stringBuilder = new StringBuilder();
 
         try (FileReader fileReader = new FileReader( file )) {
 
             int next2bytes = fileReader.read();
 
             while (next2bytes != -1) {
-                bigInteger = bigInteger.shiftLeft(16).add(BigInteger.valueOf(next2bytes));
+                stringBuilder.append((char) next2bytes);
                 next2bytes = fileReader.read();
             }
 
@@ -123,29 +127,24 @@ public class PsychopompRSA {
             throw new RuntimeException(e);
         }
 
-        return bigInteger;
+        return charsToBigInt( stringBuilder.toString().toCharArray() );
     }
 
     public static void writeBigIntegerFile(File file, BigInteger bigInteger) throws IOException {
 
-        int next2bytes, shift;
+        char[] chars = bigIntToChars(bigInteger);
 
         try (FileWriter fileWriter = new FileWriter(file)) {
 
-            while (bigInteger.bitLength() > 0) {
-
-                shift = bigInteger.bitLength() - (bigInteger.bitLength() - 1) % 16 - 1;
-                next2bytes = bigInteger.shiftRight( shift ).intValueExact();
-                bigInteger = bigInteger.subtract( BigInteger.valueOf( next2bytes ).shiftLeft( shift ) );
-                fileWriter.append( (char) next2bytes );
-
+            for (char c:chars){
+                fileWriter.append(c);
             }
         }
     }
 
     public static void saveBigIntToTxt (File file, BigInteger bigInteger) throws IOException {
         try (FileWriter fileWriter = new FileWriter(file)) {
-            fileWriter.write(bigInteger.toString());
+            fileWriter.write(bigInteger.toString(Character.MAX_RADIX));
         }
     }
 
@@ -158,24 +157,34 @@ public class PsychopompRSA {
                 next2bytes = fileReader.read();
             }
         }
-        return new BigInteger(stringBuilder.toString());
+        return new BigInteger(stringBuilder.toString(), Character.MAX_RADIX);
     }
 
-    public static char[] bigIntToChars(BigInteger bigInteger) {
+    public static char[] bigIntToChars(BigInteger bigInteger) { 
         StringBuilder returnValue = new StringBuilder();
-        int nextByte, shift;
-
-        while(bigInteger.bitLength() > 16){
-            shift = bigInteger.bitLength() - (bigInteger.bitLength()-1) % 16 - 1;
-
-            nextByte = bigInteger.shiftRight( shift ).intValueExact();
-            returnValue.append((char) nextByte);
-            bigInteger = bigInteger.subtract( BigInteger.valueOf(nextByte).shiftLeft( shift ) );
+        byte[] bytes = bigInteger.toByteArray();
+        int i = 0;
+        
+        if (bytes.length % 2 == 1) {
+            returnValue.append( (char) bytes[0] );
+            i++;
         }
 
-        returnValue.append((char) bigInteger.intValueExact());
+        for ( /* yea, I know this isn't good code, but it works */; i < bytes.length; i += 2) {
+            returnValue.append( (char) ( ((int) bytes[i] << 8) + (int) bytes[i + 1] ) );
+        }
 
         return returnValue.toString().toCharArray();
+    }
+
+    public static BigInteger charsToBigInt(char[] chars) { 
+        BigInteger returnValue = BigInteger.ZERO;
+
+        for (char c:chars) {
+            returnValue = returnValue.shiftLeft(16).add(BigInteger.valueOf(c));
+        }
+
+        return returnValue;
     }
 
     public BigInteger getDecryptionKey() {
@@ -265,6 +274,8 @@ public class PsychopompRSA {
     }
 
     public static BigInteger[] legacy_generateDecryptionKeys(BigInteger p, BigInteger q, BigInteger e, int length){
+        // written years ago
+        
         BigInteger[] returnKeys = new BigInteger[length];
         BigInteger phiOfN = ((p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE)));
         ArrayList<BigInteger> possibleKeys = new ArrayList<>();
@@ -294,6 +305,8 @@ public class PsychopompRSA {
     }
 
     public static BigInteger[] legacy_generateKeys(BigInteger lowerBound, BigInteger upperBound) throws IOException {
+        // written years ago
+        
         long time;
         Date date = new Date();
         time = date.getTime();
